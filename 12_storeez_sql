@@ -1,0 +1,32 @@
+WITH
+type AS (SELECT
+		client_id,
+		CASE WHEN days < 1 THEN 'new'
+		WHEN days >=1 AND days <=7 THEN '1 week'
+		WHEN days >7 AND days <= 30 THEN '1 month'
+		WHEN days >30 AND days <= 90 THEN '3 month'
+		WHEN days >90 AND days <= 180 THEN '6 month'
+		WHEN days >180 AND days <= 365 THEN '1 year'
+		WHEN days > 365 THEN '1+ year'
+		END AS type
+		FROM (SELECT
+				client_id,
+				CURRENT_TIMESTAMP - MAX(CAST(date AS timestamp)) AS days
+	       		FROM table
+				GROUP BY client_id
+       			) AS days
+       			),
+	
+week AS (SELECT
+		client_id,
+		WEEK(date)
+		FROM table
+		)
+
+SELECT 
+week.week,
+type.type,
+COUNT(client_id) AS clients
+FROM type JOIN week ON week.client_id = TYPE.client_id
+GROP BY week, type
+
